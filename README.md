@@ -17,7 +17,7 @@ A binary sensor is also provided for automations:
 
 ## Installation (HACS)
 
-1. Add this repository as a custom HACS repository.
+1. In HACS, add custom repository: `https://github.com/andriusbaranauskas/esso-check`
 2. Install **ESO Free Capacity Check**.
 3. Restart Home Assistant.
 4. Go to **Settings → Devices & services → Add integration**.
