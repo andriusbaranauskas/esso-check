@@ -3,10 +3,10 @@
   "name": "ESO Free Capacity Check",
   "codeowners": ["@andrius.baranauskas"],
   "config_flow": true,
-  "documentation": "https://gitlab.com/ecokube-public/esso-check",
+  "documentation": "https://github.com/andriusbaranauskas/esso-check",
   "integration_type": "device",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://gitlab.com/ecokube-public/esso-check/issues",
+  "issue_tracker": "https://github.com/andriusbaranauskas/esso-check/issues",
   "requirements": [],
   "version": "1.0.0"
 }
