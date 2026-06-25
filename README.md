@@ -5,7 +5,7 @@ Home Assistant custom integration (HACS) that checks [ESO laisvos galios pasitik
 ## What it does
 
 1. Loads the ESO check page and obtains a session token.
-2. Posts your **object number** (for example `17055591`) to the ESO API.
+2. Posts your **object number** (for example `17066643`) to the ESO API.
 3. Parses the response:
    - If the text contains **"Laisvos galios pastotėje nėra"** → sensor state is `none`
    - Otherwise → sensor state is `true`
@@ -53,7 +53,7 @@ automation:
   - alias: Notify when ESO free capacity appears
     trigger:
       - platform: state
-        entity_id: sensor.eso_17055591_free_capacity
+        entity_id: sensor.eso_17066643_free_capacity
         to: "true"
     action:
       - service: notify.mobile_app
