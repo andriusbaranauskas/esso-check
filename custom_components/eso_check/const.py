@@ -12,9 +12,9 @@ DEFAULT_CHECK_URL = (
 DEFAULT_SCAN_INTERVAL = 86400  # 24 hours
 
 NO_CAPACITY_PHRASE = "Laisvos galios pastotėje nėra"
+ALLOWED_CAPACITY_PHRASE = "Galite pildyti paraišką, su leistina generuoti galia ne didesne nei"
 
 XSRF_COOKIE_PREFIX = "SITEXSRF"
 XSRF_HEADER_PREFIX = "X-"
 
-STATE_AVAILABLE = "true"
 STATE_NONE = "none"
