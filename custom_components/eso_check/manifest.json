@@ -1,0 +1,12 @@
+{
+  "domain": "eso_check",
+  "name": "ESO Free Capacity Check",
+  "codeowners": ["@andrius.baranauskas"],
+  "config_flow": true,
+  "documentation": "https://gitlab.com/ecokube-public/esso-check",
+  "integration_type": "device",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://gitlab.com/ecokube-public/esso-check/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

@@ -1,0 +1,23 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ESO Free Capacity Check",
+        "description": "Monitor ESO substation free capacity for your object number.",
+        "data": {
+          "object_number": "Object number (8 digits)",
+          "check_url": "ESO check page URL",
+          "scan_interval": "Check interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to ESO website",
+      "invalid_auth": "Invalid object number or ESO rejected the request",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "This object number is already configured"
+    }
+  }
+}
