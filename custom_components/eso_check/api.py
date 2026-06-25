@@ -11,6 +11,7 @@ import aiohttp
 from aiohttp import ClientResponse
 
 from .const import (
+    ALLOWED_CAPACITY_LIMIT_PHRASE,
     ALLOWED_CAPACITY_PHRASE,
     NO_CAPACITY_PHRASE,
     XSRF_COOKIE_PREFIX,
@@ -25,7 +26,7 @@ _XSRF_NAME_PATTERN = re.compile(
 )
 _DATA_URL_PATTERN = re.compile(r'"dataUrl"\s*:\s*"([^"]+)"')
 _ALLOWED_KW_PATTERN = re.compile(
-    r"Galite pildyti paraišką,\s*su leistina generuoti galia ne didesne nei\s*(\d+(?:[.,]\d+)?)\s*kW",
+    r"ne didesne nei\s*(\d+(?:[.,]\d+)?)\s*kW",
     re.IGNORECASE,
 )
 
@@ -48,6 +49,32 @@ def _normalize_kw_value(raw_value: str) -> str:
     if "." in normalized:
         normalized = normalized.rstrip("0").rstrip(".")
     return f"{normalized}KW"
+
+
+def _extract_allowed_kw_value(text: str) -> str | None:
+    """Extract allowed kW value from an ESO response message."""
+    if ALLOWED_CAPACITY_PHRASE not in text or ALLOWED_CAPACITY_LIMIT_PHRASE not in text:
+        return None
+
+    kw_match = _ALLOWED_KW_PATTERN.search(text)
+    if kw_match is None:
+        _LOGGER.debug("Allowed capacity phrase found but kW value was not parsed: %s", text)
+        return None
+
+    return _normalize_kw_value(kw_match.group(1))
+
+
+def _resolve_api_url(page_html: str, page_url: str) -> str:
+    """Resolve the ESO nrdata API URL from the page HTML."""
+    for data_path in _DATA_URL_PATTERN.findall(page_html):
+        normalized_path = data_path.replace("\\/", "/")
+        if "nrdata" not in normalized_path:
+            continue
+        if normalized_path.startswith("http"):
+            return normalized_path
+        return urljoin(page_url, normalized_path)
+
+    return _api_url_from_page_url(page_url)
 
 
 def _api_url_from_page_url(page_url: str) -> str:
@@ -100,12 +127,7 @@ async def fetch_capacity_status(
 
     xsrf_name, xsrf_value = xsrf_match
 
-    data_url_match = _DATA_URL_PATTERN.search(page_html)
-    if data_url_match:
-        data_path = data_url_match.group(1).replace("\\/", "/")
-        api_url = data_path if data_path.startswith("http") else urljoin(page_url, data_path)
-    else:
-        api_url = _api_url_from_page_url(page_url)
+    api_url = _resolve_api_url(page_html, page_url)
 
     post_headers = {
         **headers,
@@ -141,10 +163,10 @@ async def fetch_capacity_status(
 
     has_no_capacity = NO_CAPACITY_PHRASE in combined_text
     allowed_kw_value: str | None = None
-    if ALLOWED_CAPACITY_PHRASE in combined_text:
-        kw_match = _ALLOWED_KW_PATTERN.search(combined_text)
-        if kw_match:
-            allowed_kw_value = _normalize_kw_value(kw_match.group(1))
+    for message in messages:
+        allowed_kw_value = _extract_allowed_kw_value(message)
+        if allowed_kw_value:
+            break
 
     capacities: dict[str, str] = {}
     for item in data:
