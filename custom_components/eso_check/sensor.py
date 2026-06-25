@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_OBJECT_NUMBER, DOMAIN, STATE_AVAILABLE, STATE_NONE
+from .const import CONF_OBJECT_NUMBER, DOMAIN, STATE_NONE
 from .coordinator import EsoCheckCoordinator
 
 
@@ -25,7 +25,7 @@ async def async_setup_entry(
 
 
 class EsoFreeCapacitySensor(CoordinatorEntity[EsoCheckCoordinator], SensorEntity):
-    """Sensor reporting true when free capacity exists, none otherwise."""
+    """Sensor reporting detected XKW value, none otherwise."""
 
     _attr_has_entity_name = True
     _attr_name = "Free capacity"
@@ -48,12 +48,13 @@ class EsoFreeCapacitySensor(CoordinatorEntity[EsoCheckCoordinator], SensorEntity
 
     @property
     def native_value(self) -> str | None:
-        """Return true when capacity is available, none when it is not."""
+        """Return XKW when ESO allows application, none otherwise."""
         if self.coordinator.data is None:
             return None
 
-        if self.coordinator.data.get("has_free_capacity"):
-            return STATE_AVAILABLE
+        allowed_kw_value = self.coordinator.data.get("allowed_kw_value")
+        if allowed_kw_value:
+            return str(allowed_kw_value)
 
         return STATE_NONE
 
@@ -63,6 +64,7 @@ class EsoFreeCapacitySensor(CoordinatorEntity[EsoCheckCoordinator], SensorEntity
         data = self.coordinator.data or {}
         return {
             "object_number": data.get("object_number"),
+            "allowed_kw_value": data.get("allowed_kw_value"),
             "message": data.get("message"),
             "messages": data.get("messages"),
             "capacities": data.get("capacities"),

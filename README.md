@@ -8,7 +8,8 @@ Home Assistant custom integration (HACS) that checks [ESO laisvos galios pasitik
 2. Posts your **object number** (for example `17066643`) to the ESO API.
 3. Parses the response:
    - If the text contains **"Laisvos galios pastotėje nėra"** → sensor state is `none`
-   - Otherwise → sensor state is `true`
+   - If the text contains **"Galite pildyti paraišką, su leistina generuoti galia ne didesne nei X kW"** → sensor state is `XKW` (for example `10KW`, `5KW`, `2KW`)
+   - Otherwise → sensor state is `none`
 
 A binary sensor is also provided for automations:
 
@@ -36,7 +37,7 @@ A binary sensor is also provided for automations:
 
 | Entity | Example state | Meaning |
 |--------|---------------|---------|
-| `sensor.eso_<number>_free_capacity` | `true` / `none` | Text sensor matching your requested values |
+| `sensor.eso_<number>_free_capacity` | `10KW` / `5KW` / `none` | Text sensor matching your requested values |
 | `binary_sensor.eso_<number>_free_capacity_available` | `on` / `off` | Easier for automations |
 
 Both entities expose attributes:
@@ -54,7 +55,7 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.eso_17066643_free_capacity
-        to: "true"
+        to: "10KW"
     action:
       - service: notify.mobile_app
         data:

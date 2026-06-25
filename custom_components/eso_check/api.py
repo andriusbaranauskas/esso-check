@@ -10,7 +10,12 @@ from urllib.parse import urljoin
 import aiohttp
 from aiohttp import ClientResponse
 
-from .const import NO_CAPACITY_PHRASE, XSRF_COOKIE_PREFIX, XSRF_HEADER_PREFIX
+from .const import (
+    ALLOWED_CAPACITY_PHRASE,
+    NO_CAPACITY_PHRASE,
+    XSRF_COOKIE_PREFIX,
+    XSRF_HEADER_PREFIX,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,6 +24,10 @@ _XSRF_NAME_PATTERN = re.compile(
     r"var\s+secure_xsrf_name\s*=\s*['\"]([^'\"]+)['\"]"
 )
 _DATA_URL_PATTERN = re.compile(r'"dataUrl"\s*:\s*"([^"]+)"')
+_ALLOWED_KW_PATTERN = re.compile(
+    r"Galite pildyti paraišką,\s*su leistina generuoti galia ne didesne nei\s*(\d+(?:[.,]\d+)?)\s*kW",
+    re.IGNORECASE,
+)
 
 
 class EsoApiError(Exception):
@@ -31,6 +40,14 @@ class EsoConnectionError(EsoApiError):
 
 class EsoAuthError(EsoApiError):
     """ESO rejected the request."""
+
+
+def _normalize_kw_value(raw_value: str) -> str:
+    """Normalize numeric kW value and format as XKW."""
+    normalized = raw_value.replace(",", ".")
+    if "." in normalized:
+        normalized = normalized.rstrip("0").rstrip(".")
+    return f"{normalized}KW"
 
 
 def _api_url_from_page_url(page_url: str) -> str:
@@ -123,6 +140,11 @@ async def fetch_capacity_status(
     combined_text = " ".join(messages)
 
     has_no_capacity = NO_CAPACITY_PHRASE in combined_text
+    allowed_kw_value: str | None = None
+    if ALLOWED_CAPACITY_PHRASE in combined_text:
+        kw_match = _ALLOWED_KW_PATTERN.search(combined_text)
+        if kw_match:
+            allowed_kw_value = _normalize_kw_value(kw_match.group(1))
 
     capacities: dict[str, str] = {}
     for item in data:
@@ -135,6 +157,7 @@ async def fetch_capacity_status(
 
     return {
         "has_free_capacity": not has_no_capacity,
+        "allowed_kw_value": allowed_kw_value,
         "message": messages[0] if messages else "",
         "messages": messages,
         "capacities": capacities,

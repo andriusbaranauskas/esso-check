@@ -27,7 +27,7 @@ async def async_setup_entry(
 class EsoFreeCapacityBinarySensor(
     CoordinatorEntity[EsoCheckCoordinator], BinarySensorEntity
 ):
-    """Binary sensor: on when free capacity exists, off when it does not."""
+    """Binary sensor: on when ESO returns an allowed XKW value."""
 
     _attr_has_entity_name = True
     _attr_name = "Free capacity available"
@@ -50,11 +50,11 @@ class EsoFreeCapacityBinarySensor(
 
     @property
     def is_on(self) -> bool | None:
-        """Return True when free capacity is available."""
+        """Return True when ESO allows application with a kW limit."""
         if self.coordinator.data is None:
             return None
 
-        return bool(self.coordinator.data.get("has_free_capacity"))
+        return bool(self.coordinator.data.get("allowed_kw_value"))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -62,6 +62,7 @@ class EsoFreeCapacityBinarySensor(
         data = self.coordinator.data or {}
         return {
             "object_number": data.get("object_number"),
+            "allowed_kw_value": data.get("allowed_kw_value"),
             "message": data.get("message"),
             "messages": data.get("messages"),
             "capacities": data.get("capacities"),
